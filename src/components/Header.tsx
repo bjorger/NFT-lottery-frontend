@@ -3,40 +3,45 @@ import Moralis from "moralis";
 import styled from "styled-components";
 import { PolygonButton } from "./Components.sc";
 import { ReactComponent as Logo } from "../assets/polygon-matic-logo.svg";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
+import { handleUser } from "../redux/features/userSlice";
 
 const Header: React.FC = () => {
-    const [currentUser, setCurrentUser] = React.useState(
-        Moralis.User.current()
-    );
+    const user = useAppSelector((state) => state.user.user);
+    const dispatch = useAppDispatch();
+
+    React.useEffect(() => {
+        dispatch(handleUser(Moralis.User.current()));
+    }, [dispatch]);
 
     Moralis.onAccountChanged(() => {
-        Moralis.User.logOut().then(() => {
-            setCurrentUser(Moralis.User.current()); // this will now be null
-        });
+        Moralis.User.logOut().then(() =>
+            dispatch(handleUser(Moralis.User.current()))
+        );
     });
 
     return (
         <HeaderContainer>
             <MaticLogo />
             <ButtonContainer>
-                {!currentUser ? (
+                {!user ? (
                     <PolygonButton
-                        onClick={() =>
-                            Moralis.authenticate().then((user) =>
-                                setCurrentUser(user)
-                            )
-                        }
+                        onClick={() => {
+                            Moralis.authenticate().then((user) => {
+                                dispatch(handleUser(user));
+                            });
+                        }}
                         variant="contained"
                     >
                         Login
                     </PolygonButton>
                 ) : (
                     <PolygonButton
-                        onClick={() =>
-                            Moralis.User.logOut().then(() => {
-                                setCurrentUser(Moralis.User.current()); // this will now be null
-                            })
-                        }
+                        onClick={() => {
+                            Moralis.User.logOut().then(() =>
+                                dispatch(handleUser(Moralis.User.current()))
+                            );
+                        }}
                         variant="contained"
                     >
                         Logout

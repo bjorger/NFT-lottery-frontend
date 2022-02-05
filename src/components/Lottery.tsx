@@ -3,8 +3,9 @@ import Moralis from "moralis";
 import LotteryABI from "../abi/lottery.json";
 import { PolygonButton } from "./Components.sc";
 import styled from "styled-components";
+import { useAppSelector } from "../redux/hooks";
 
-const CONTRACT_ADDRESS = "0xE8df5bF52B6A84B8D471F7a00446B6C069Eeb85B";
+const CONTRACT_ADDRESS = "0x465cdD703daA8C3Da2728152b322a61dF0b418E1";
 
 interface SendOptions {
     contractAddress: string;
@@ -29,7 +30,8 @@ const entrantCountOptions = {
 // TODO: IMPLEMENT CHECK IF USER IS ALREADY REGISTERED
 
 const Lottery: React.FC = () => {
-    const [currentUser] = React.useState(Moralis.User.current());
+    const user = useAppSelector((state) => state.user.user);
+
     const [ticketPrice] = React.useState<number>(0.01);
 
     const enterLottery = async () => {
@@ -46,7 +48,7 @@ const Lottery: React.FC = () => {
             const Player = Moralis.Object.extend("Player");
             const player = new Player();
 
-            player.set("address", currentUser?.attributes.ethAddress);
+            player.set("address", user?.attributes.ethAddress);
             player.set("ticketPrice", ticketPrice);
             player.save();
         });
@@ -55,7 +57,7 @@ const Lottery: React.FC = () => {
     return (
         <LotteryContainer>
             <ButtonGrid>
-                {currentUser && (
+                {user && (
                     <PolygonButton onClick={enterLottery} variant="contained">
                         Enter Lottery
                     </PolygonButton>
@@ -80,7 +82,7 @@ const Lottery: React.FC = () => {
                     onClick={async () => {
                         const balances = await Moralis.Web3API.account.getNFTs({
                             chain: "mumbai",
-                            address: currentUser?.attributes.ethAddress,
+                            address: user?.attributes.ethAddress,
                         });
                         console.log(balances);
                     }}
@@ -92,7 +94,7 @@ const Lottery: React.FC = () => {
                     onClick={() =>
                         console.log(
                             "currentUser: ",
-                            currentUser?.attributes.ethAddress
+                            user?.attributes.ethAddress
                         )
                     }
                 >
