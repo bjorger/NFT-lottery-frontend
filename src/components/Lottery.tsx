@@ -1,9 +1,10 @@
 import React from "react";
 import Moralis from "moralis";
 import LotteryABI from "../abi/lottery.json";
-import { Button } from "@mui/material";
+import { PolygonButton } from "./Components.sc";
+import styled from "styled-components";
 
-const CONTRACT_ADDRESS = "0x8D44A56eccd19CFF0AeB01281e7A5E4E723a4fBb";
+const CONTRACT_ADDRESS = "0xE8df5bF52B6A84B8D471F7a00446B6C069Eeb85B";
 
 interface SendOptions {
     contractAddress: string;
@@ -12,13 +13,6 @@ interface SendOptions {
     params?: any;
     msgValue?: string;
 }
-
-const sendOptions: SendOptions = {
-    contractAddress: CONTRACT_ADDRESS,
-    functionName: "enter",
-    abi: LotteryABI,
-    msgValue: Moralis.Units.ETH("0.01"),
-};
 
 const lotteryPotOptions = {
     contractAddress: CONTRACT_ADDRESS,
@@ -32,42 +26,96 @@ const entrantCountOptions = {
     abi: LotteryABI,
 };
 
+// TODO: IMPLEMENT CHECK IF USER IS ALREADY REGISTERED
+
 const Lottery: React.FC = () => {
     const [currentUser] = React.useState(Moralis.User.current());
+    const [ticketPrice] = React.useState<number>(0.01);
 
     const enterLottery = async () => {
+        const sendOptions: SendOptions = {
+            contractAddress: CONTRACT_ADDRESS,
+            functionName: "enter",
+            abi: LotteryABI,
+            msgValue: Moralis.Units.ETH(ticketPrice),
+        };
         const transaction = await Moralis.executeFunction(sendOptions);
         console.log(transaction);
         // @ts-ignore
-        await transaction.wait();
+        transaction.wait().then(() => {
+            const Player = Moralis.Object.extend("Player");
+            const player = new Player();
+
+            player.set("address", currentUser?.attributes.ethAddress);
+            player.set("ticketPrice", ticketPrice);
+            player.save();
+        });
     };
 
-    console.log("currentUser: ", currentUser?.attributes.ethAddress);
-
     return (
-        <>
-            {currentUser && (
-                <Button onClick={enterLottery} variant="contained">
-                    Enter Lottery
-                </Button>
-            )}
-            <Button
-                variant="contained"
-                onClick={async () => {
-                    const lotteryPot = await Moralis.executeFunction(
-                        lotteryPotOptions
-                    );
-                    console.log("lotteryPot:", lotteryPot);
-                    const entrantCount = await Moralis.executeFunction(
-                        entrantCountOptions
-                    );
-                    console.log("entrantCount:", entrantCount);
-                }}
-            >
-                Get Contract Data
-            </Button>
-        </>
+        <LotteryContainer>
+            <ButtonGrid>
+                {currentUser && (
+                    <PolygonButton onClick={enterLottery} variant="contained">
+                        Enter Lottery
+                    </PolygonButton>
+                )}
+                <PolygonButton
+                    variant="contained"
+                    onClick={async () => {
+                        const lotteryPot = await Moralis.executeFunction(
+                            lotteryPotOptions
+                        );
+                        console.log("lotteryPot:", lotteryPot);
+                        const entrantCount = await Moralis.executeFunction(
+                            entrantCountOptions
+                        );
+                        console.log("entrantCount:", entrantCount);
+                    }}
+                >
+                    Get Contract Data
+                </PolygonButton>
+                <PolygonButton
+                    variant="contained"
+                    onClick={async () => {
+                        const balances = await Moralis.Web3API.account.getNFTs({
+                            chain: "mumbai",
+                            address: currentUser?.attributes.ethAddress,
+                        });
+                        console.log(balances);
+                    }}
+                >
+                    Check Token Balance
+                </PolygonButton>
+                <PolygonButton
+                    variant="contained"
+                    onClick={() =>
+                        console.log(
+                            "currentUser: ",
+                            currentUser?.attributes.ethAddress
+                        )
+                    }
+                >
+                    Check current User
+                </PolygonButton>
+            </ButtonGrid>
+        </LotteryContainer>
     );
 };
 
 export default Lottery;
+
+const ButtonGrid = styled.div`
+    margin-top: 100px;
+    display: grid;
+    grid-column: 3 / span 20;
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 50px;
+    place-self: center;
+    column-gap: 50px;
+`;
+
+const LotteryContainer = styled.div`
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+`;

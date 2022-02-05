@@ -1,7 +1,7 @@
 import React from "react";
 import Moralis from "moralis";
 import styled from "styled-components";
-import { Button } from "@mui/material";
+import { PolygonButton } from "./Components.sc";
 import { ReactComponent as Logo } from "../assets/polygon-matic-logo.svg";
 
 const Header: React.FC = () => {
@@ -9,12 +9,18 @@ const Header: React.FC = () => {
         Moralis.User.current()
     );
 
+    Moralis.onAccountChanged(() => {
+        Moralis.User.logOut().then(() => {
+            setCurrentUser(Moralis.User.current()); // this will now be null
+        });
+    });
+
     return (
         <HeaderContainer>
             <MaticLogo />
             <ButtonContainer>
                 {!currentUser ? (
-                    <Button
+                    <PolygonButton
                         onClick={() =>
                             Moralis.authenticate().then((user) =>
                                 setCurrentUser(user)
@@ -23,9 +29,9 @@ const Header: React.FC = () => {
                         variant="contained"
                     >
                         Login
-                    </Button>
+                    </PolygonButton>
                 ) : (
-                    <Button
+                    <PolygonButton
                         onClick={() =>
                             Moralis.User.logOut().then(() => {
                                 setCurrentUser(Moralis.User.current()); // this will now be null
@@ -34,7 +40,7 @@ const Header: React.FC = () => {
                         variant="contained"
                     >
                         Logout
-                    </Button>
+                    </PolygonButton>
                 )}
             </ButtonContainer>
         </HeaderContainer>
@@ -46,7 +52,7 @@ export default Header;
 const HeaderContainer = styled.header`
     display: grid;
     grid-template-columns: repeat(24, 1fr);
-    border-bottom: 1px solid #1976d2;
+    border-bottom: 1px solid #8247e5;
     height: 100px;
 `;
 

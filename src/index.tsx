@@ -4,6 +4,8 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import Moralis from "moralis";
+import { ThemeProvider } from "styled-components";
+import theme from "./theme";
 
 const serverUrl = "https://bf3dqqia5hxt.usemoralis.com:2053/server";
 const appId = "e3xNUeISKbSEBCNhAMnSLMpBPTuSPFyos2b1ZLa5";
@@ -13,7 +15,9 @@ Moralis.enableWeb3({ provider: "metamask" });
 
 ReactDOM.render(
     <React.StrictMode>
-        <App />
+        <ThemeProvider theme={theme}>
+            <App />
+        </ThemeProvider>
     </React.StrictMode>,
     document.getElementById("root")
 );
