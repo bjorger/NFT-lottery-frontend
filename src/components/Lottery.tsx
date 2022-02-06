@@ -1,12 +1,15 @@
 import React from "react";
 import Moralis from "moralis";
 import LotteryABI from "../abi/lottery.json";
+import ERC20ABI from "../abi/ERC20.json";
 import { PolygonButton } from "./Components.sc";
 import styled from "styled-components";
 import { useAppSelector } from "../redux/hooks";
 
-const CONTRACT_ADDRESS = "0x465cdD703daA8C3Da2728152b322a61dF0b418E1";
+const CONTRACT_ADDRESS = "0x86b7D16308bcAD18EF78C0815697fEb3Df4DdD91";
+const WETH_CONTRACT_ADDRESS = "0x3C68CE8504087f89c640D02d133646d98e64ddd9";
 
+const CHAIN_ID = "80001";
 interface SendOptions {
     contractAddress: string;
     functionName: string;
@@ -27,13 +30,28 @@ const entrantCountOptions = {
     abi: LotteryABI,
 };
 
+enum MintingState {
+    NOT_MINTING,
+    MINTING,
+    DONE,
+}
+
 // TODO: IMPLEMENT CHECK IF USER IS ALREADY REGISTERED
 
 const Lottery: React.FC = () => {
     const user = useAppSelector((state) => state.user.user);
+    const ticket_bracket = 1;
+    const [ticketPrice] = React.useState<number>(0.01 * ticket_bracket + 0.001);
 
-    const [ticketPrice] = React.useState<number>(0.01);
+    const [mintingState, setMintingState] = React.useState<MintingState>(
+        MintingState.NOT_MINTING
+    );
 
+    /*
+    Moralis.Cloud.run("watchContractEvent", MintTicketEventOptions, {
+        useMasterKey: false,
+    }).then(() => console.log("Ticket minted"));
+    */
     const enterLottery = async () => {
         const sendOptions: SendOptions = {
             contractAddress: CONTRACT_ADDRESS,
@@ -41,27 +59,52 @@ const Lottery: React.FC = () => {
             abi: LotteryABI,
             msgValue: Moralis.Units.ETH(ticketPrice),
         };
-        const transaction = await Moralis.executeFunction(sendOptions);
-        console.log(transaction);
-        // @ts-ignore
-        transaction.wait().then(() => {
-            const Player = Moralis.Object.extend("Player");
-            const player = new Player();
+        const approveOptions: SendOptions = {
+            contractAddress: WETH_CONTRACT_ADDRESS,
+            functionName: "approve",
+            abi: ERC20ABI,
+            params: {
+                _spender: CONTRACT_ADDRESS,
+                _value: Moralis.Units.Token(ticketPrice),
+            },
+        };
 
+        try {
+            const approval = await Moralis.executeFunction(approveOptions);
+            // @ts-ignore
+            await approval.wait();
+            const transaction = await Moralis.executeFunction(sendOptions);
+            // @ts-ignore
+            await transaction.wait();
+            const Player = Moralis.Object.extend("Entrant");
+            const player = new Player();
+            console.log("Minting successful");
             player.set("address", user?.attributes.ethAddress);
             player.set("ticketPrice", ticketPrice);
             player.save();
-        });
+        } catch (e) {
+            console.log(e);
+        }
     };
 
     return (
         <LotteryContainer>
-            <ButtonGrid>
-                {user && (
-                    <PolygonButton onClick={enterLottery} variant="contained">
-                        Enter Lottery
-                    </PolygonButton>
+            <MintingStateContainer>
+                {mintingState === MintingState.MINTING && (
+                    <div>Ticket will be minted now</div>
                 )}
+                {mintingState === MintingState.DONE && (
+                    <div>Your ticket has been minted!</div>
+                )}
+            </MintingStateContainer>
+            <ButtonGrid>
+                <PolygonButton
+                    onClick={enterLottery}
+                    disabled={!user}
+                    variant="contained"
+                >
+                    Enter Lottery
+                </PolygonButton>
                 <PolygonButton
                     variant="contained"
                     onClick={async () => {
@@ -120,4 +163,8 @@ const ButtonGrid = styled.div`
 const LotteryContainer = styled.div`
     display: grid;
     grid-template-columns: repeat(24, 1fr);
+`;
+
+const MintingStateContainer = styled.div`
+    grid-column: 3 / span 20;
 `;

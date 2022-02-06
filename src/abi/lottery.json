@@ -35,7 +35,7 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "bracket",
+                "name": "",
                 "type": "uint256"
             }
         ],
@@ -48,13 +48,13 @@
             {
                 "indexed": false,
                 "internalType": "address",
-                "name": "player",
+                "name": "",
                 "type": "address"
             },
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "rarity",
+                "name": "",
                 "type": "uint256"
             }
         ],
@@ -85,8 +85,27 @@
         "inputs": [
             {
                 "indexed": false,
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "PaymentReceived",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
                 "internalType": "bytes32",
-                "name": "id",
+                "name": "",
                 "type": "bytes32"
             }
         ],
@@ -248,19 +267,6 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "categoryBracket",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "uint256",
@@ -290,6 +296,32 @@
     {
         "inputs": [],
         "name": "entrantCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getContractBalance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getWETHBalance",
         "outputs": [
             {
                 "internalType": "uint256",

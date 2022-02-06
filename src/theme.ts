@@ -13,6 +13,7 @@ const theme = createTheme({
     palette: {
         primary: {
             main: "#8247e5",
+            contrastText: "#bababa",
         },
     },
     breakpoints: {
