@@ -34,19 +34,6 @@
         "inputs": [
             {
                 "indexed": false,
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "CategoryBracket",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
                 "internalType": "address",
                 "name": "",
                 "type": "address"
@@ -96,7 +83,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "PaymentReceived",
+        "name": "PayWinner",
         "type": "event"
     },
     {
@@ -267,16 +254,23 @@
         "type": "function"
     },
     {
-        "inputs": [
+        "inputs": [],
+        "name": "disableWhitelistMode",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "drawingState",
+        "outputs": [
             {
-                "internalType": "uint256",
-                "name": "rarity",
-                "type": "uint256"
+                "internalType": "enum DrawingState",
+                "name": "",
+                "type": "uint8"
             }
         ],
-        "name": "drawWinner",
-        "outputs": [],
-        "stateMutability": "payable",
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -320,6 +314,64 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "entrant",
+                "type": "address"
+            }
+        ],
+        "name": "getEntrantStatus",
+        "outputs": [
+            {
+                "internalType": "enum EntrantState",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getLotteryPot",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getLotteryState",
+        "outputs": [
+            {
+                "internalType": "enum LotteryState",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getTicketPrice",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "getWETHBalance",
         "outputs": [
@@ -351,19 +403,6 @@
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "lotteryPot",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -518,6 +557,13 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "startDrawing",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "bytes4",
@@ -534,6 +580,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_addr",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "rarity",
+                "type": "uint256"
+            }
+        ],
+        "name": "testFunctionDELETETHIS",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -563,6 +627,19 @@
                 "internalType": "string",
                 "name": "",
                 "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "winnerCount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",

@@ -33,7 +33,7 @@ const Header: React.FC = () => {
                         }}
                         variant="contained"
                     >
-                        Login
+                        Connect Wallet
                     </PolygonButton>
                 ) : (
                     <PolygonButton
@@ -44,7 +44,7 @@ const Header: React.FC = () => {
                         }}
                         variant="contained"
                     >
-                        Logout
+                        Disconnect Wallet
                     </PolygonButton>
                 )}
             </ButtonContainer>

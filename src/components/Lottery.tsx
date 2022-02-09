@@ -6,10 +6,9 @@ import { PolygonButton } from "./Components.sc";
 import styled from "styled-components";
 import { useAppSelector } from "../redux/hooks";
 
-const CONTRACT_ADDRESS = "0x86b7D16308bcAD18EF78C0815697fEb3Df4DdD91";
+const CONTRACT_ADDRESS = "0x360ea9a55a9b4A9304b7396BFc44dE1c1bD8306f";
 const WETH_CONTRACT_ADDRESS = "0x3C68CE8504087f89c640D02d133646d98e64ddd9";
 
-const CHAIN_ID = "80001";
 interface SendOptions {
     contractAddress: string;
     functionName: string;
@@ -20,7 +19,7 @@ interface SendOptions {
 
 const lotteryPotOptions = {
     contractAddress: CONTRACT_ADDRESS,
-    functionName: "lotteryPot",
+    functionName: "getLotteryPot",
     abi: LotteryABI,
 };
 
@@ -30,28 +29,72 @@ const entrantCountOptions = {
     abi: LotteryABI,
 };
 
-enum MintingState {
-    NOT_MINTING,
-    MINTING,
-    DONE,
-}
+const getTicketPriceOptions = {
+    contractAddress: CONTRACT_ADDRESS,
+    functionName: "getTicketPrice",
+    abi: LotteryABI,
+};
 
-// TODO: IMPLEMENT CHECK IF USER IS ALREADY REGISTERED
+const MapStateToString = {
+    0: "Did not enter",
+    1: "Currently Minting",
+    2: "Owns Ticket",
+};
 
 const Lottery: React.FC = () => {
     const user = useAppSelector((state) => state.user.user);
-    const ticket_bracket = 1;
-    const [ticketPrice] = React.useState<number>(0.01 * ticket_bracket + 0.001);
+    const [ticketPrice, setTicketPrice] = React.useState<number>(0);
+    const [entrantCount, setEntrantCount] = React.useState<number>(0);
+    const [currentPot, setCurrenPot] = React.useState<number>(0);
+    const [entrantState, setEntrantState] = React.useState<number>(0);
 
-    const [mintingState, setMintingState] = React.useState<MintingState>(
-        MintingState.NOT_MINTING
-    );
+    React.useEffect(() => {
+        (async () => {
+            setTimeout(async () => {
+                const ticketPriceRes = await Moralis.executeFunction(
+                    getTicketPriceOptions
+                );
+                // @ts-ignore
+                setTicketPrice(parseInt(ticketPriceRes._hex, 16) / 10 ** 18);
 
-    /*
-    Moralis.Cloud.run("watchContractEvent", MintTicketEventOptions, {
-        useMasterKey: false,
-    }).then(() => console.log("Ticket minted"));
-    */
+                const entrantCountRes = await Moralis.executeFunction(
+                    entrantCountOptions
+                );
+                // @ts-ignore
+                setEntrantCount(parseInt(entrantCountRes._hex, 16));
+
+                const currentPotRes = await Moralis.executeFunction(
+                    lotteryPotOptions
+                );
+                // @ts-ignore
+                setCurrenPot(parseInt(currentPotRes._hex, 16) / 10 ** 18);
+            }, 1000);
+        })();
+    }, []);
+
+    const getEntrantState = async () => {
+        const getEntrantStateOptions = {
+            contractAddress: CONTRACT_ADDRESS,
+            functionName: "getEntrantStatus",
+            abi: LotteryABI,
+            params: {
+                entrant: Moralis.User.current()?.attributes.ethAddress,
+            },
+        };
+
+        try {
+            const entrantStateRes = await Moralis.executeFunction(
+                getEntrantStateOptions
+            );
+            // @ts-ignore
+            setEntrantState(entrantStateRes);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    console.log(ticketPrice);
+
     const enterLottery = async () => {
         const sendOptions: SendOptions = {
             contractAddress: CONTRACT_ADDRESS,
@@ -76,72 +119,37 @@ const Lottery: React.FC = () => {
             const transaction = await Moralis.executeFunction(sendOptions);
             // @ts-ignore
             await transaction.wait();
-            const Player = Moralis.Object.extend("Entrant");
-            const player = new Player();
-            console.log("Minting successful");
-            player.set("address", user?.attributes.ethAddress);
-            player.set("ticketPrice", ticketPrice);
-            player.save();
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     };
 
     return (
         <LotteryContainer>
-            <MintingStateContainer>
-                {mintingState === MintingState.MINTING && (
-                    <div>Ticket will be minted now</div>
-                )}
-                {mintingState === MintingState.DONE && (
-                    <div>Your ticket has been minted!</div>
-                )}
-            </MintingStateContainer>
             <ButtonGrid>
+                <TicketPriceContainer>
+                    Current Ticketprice: {ticketPrice} WETH <br />
+                    Current Pot: {currentPot} WETH <br />
+                    Current Entrants: {entrantCount} <br />
+                    Ticket Status:{" "}
+                    {
+                        // @ts-ignore
+                        MapStateToString[entrantState]
+                    }
+                </TicketPriceContainer>
                 <PolygonButton
                     onClick={enterLottery}
-                    disabled={!user}
+                    disabled={!user || ticketPrice === 0}
                     variant="contained"
                 >
                     Enter Lottery
                 </PolygonButton>
                 <PolygonButton
+                    onClick={getEntrantState}
+                    disabled={!user}
                     variant="contained"
-                    onClick={async () => {
-                        const lotteryPot = await Moralis.executeFunction(
-                            lotteryPotOptions
-                        );
-                        console.log("lotteryPot:", lotteryPot);
-                        const entrantCount = await Moralis.executeFunction(
-                            entrantCountOptions
-                        );
-                        console.log("entrantCount:", entrantCount);
-                    }}
                 >
-                    Get Contract Data
-                </PolygonButton>
-                <PolygonButton
-                    variant="contained"
-                    onClick={async () => {
-                        const balances = await Moralis.Web3API.account.getNFTs({
-                            chain: "mumbai",
-                            address: user?.attributes.ethAddress,
-                        });
-                        console.log(balances);
-                    }}
-                >
-                    Check Token Balance
-                </PolygonButton>
-                <PolygonButton
-                    variant="contained"
-                    onClick={() =>
-                        console.log(
-                            "currentUser: ",
-                            user?.attributes.ethAddress
-                        )
-                    }
-                >
-                    Check current User
+                    Check Ticket Status
                 </PolygonButton>
             </ButtonGrid>
         </LotteryContainer>
@@ -152,12 +160,8 @@ export default Lottery;
 
 const ButtonGrid = styled.div`
     margin-top: 100px;
-    display: grid;
-    grid-column: 3 / span 20;
-    grid-template-columns: repeat(2, 1fr);
-    row-gap: 50px;
-    place-self: center;
-    column-gap: 50px;
+    grid-column: 3 / span 19;
+    width: 100%;
 `;
 
 const LotteryContainer = styled.div`
@@ -165,6 +169,7 @@ const LotteryContainer = styled.div`
     grid-template-columns: repeat(24, 1fr);
 `;
 
-const MintingStateContainer = styled.div`
-    grid-column: 3 / span 20;
+const TicketPriceContainer = styled.div`
+    margin: 50px 0;
+    font-weight: bold;
 `;
